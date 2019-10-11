@@ -25,34 +25,41 @@ const (
 	URLUnknown
 )
 
-// URLEntry Entry of URL in URLHaus
-type URLEntry struct {
+// URLEntries Map of url to details about that url
+type URLEntries map[string]*URLDetails
+
+// URLDetails Entry of URL in URLHaus
+type URLDetails struct {
 	ID          string
 	DateAdded   string
-	URL         string
 	URLStatus   URLStatus
 	Threat      string
 	Tags        []string
 	URLHausLink string
 	Reporter    string
+
+	// Default to nothing, but filled in when calling GetURLPayloadHashes
+	Filetype string
+	MD5      string
+	SHA256   string
 }
 
 // GetRecentURLs Get all recent urls from URLHaus
-func GetRecentURLs() ([]URLEntry, error) {
+func GetRecentURLs() (URLEntries, error) {
 	return linkToURLEntries(urlHausRecentURLsLink)
 }
 
 // GetAllURLs Get all urlhaus urls
-func GetAllURLs() ([]URLEntry, error) {
+func GetAllURLs() (URLEntries, error) {
 	return linkToURLEntries(urlHausAllURLsLink)
 }
 
 // GetAllOnlineURLs Get all urlhaus urls
-func GetAllOnlineURLs() ([]URLEntry, error) {
+func GetAllOnlineURLs() (URLEntries, error) {
 	return linkToURLEntries(urlHausAllOnlineURLsLink)
 }
 
-func linkToURLEntries(url string) ([]URLEntry, error) {
+func linkToURLEntries(url string) (URLEntries, error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -61,9 +68,10 @@ func linkToURLEntries(url string) ([]URLEntry, error) {
 	return csvToURLEntries(response.Body), nil
 }
 
-func csvToURLEntries(reader io.Reader) []URLEntry {
+// csvToURLEntries Given a reader with csv content, convert to URLEntries
+func csvToURLEntries(reader io.Reader) URLEntries {
 	scanner := csv.NewScanner(reader, csv.Comma(','), csv.Comment('#'), csv.ContinueOnError(true))
-	URLEntries := []URLEntry{}
+	URLEntries := URLEntries{}
 
 	for scanner.Scan() {
 		// Current header: id,dateadded,url,url_status,threat,tags,urlhaus_link,reporter
@@ -73,26 +81,25 @@ func csvToURLEntries(reader io.Reader) []URLEntry {
 		fields := scanner.Record()
 
 		// Craft URLEntry
-		URLEntry := URLEntry{}
-		URLEntry.ID = fields[0]
-		URLEntry.DateAdded = fields[1]
-		URLEntry.URL = fields[2]
+		URLDetails := URLDetails{}
+		URLDetails.ID = fields[0]
+		URLDetails.DateAdded = fields[1]
 		if fields[3] == "offline" {
-			URLEntry.URLStatus = URLOffline
+			URLDetails.URLStatus = URLOffline
 		} else if fields[3] == "online" {
-			URLEntry.URLStatus = URLOnline
+			URLDetails.URLStatus = URLOnline
 		} else {
-			URLEntry.URLStatus = URLUnknown
+			URLDetails.URLStatus = URLUnknown
 		}
-		URLEntry.Threat = fields[4]
+		URLDetails.Threat = fields[4]
 		if fields[5] != "None" {
-			URLEntry.Tags = strings.Split(fields[5], ",")
+			URLDetails.Tags = strings.Split(fields[5], ",")
 		}
-		URLEntry.URLHausLink = fields[6]
-		URLEntry.Reporter = fields[7]
+		URLDetails.URLHausLink = fields[6]
+		URLDetails.Reporter = fields[7]
 
 		// Add to slice
-		URLEntries = append(URLEntries, URLEntry)
+		URLEntries[fields[2]] = &URLDetails
 	}
 
 	return URLEntries
