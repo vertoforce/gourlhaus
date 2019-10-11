@@ -2,24 +2,31 @@ package urlhaus
 
 import "testing"
 
-func TestGetRecentURLs(t *testing.T) {
+func TestGetURLs(t *testing.T) {
+	// Recent
 	recentURLs, err := GetRecentURLs()
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("Error fetching recent URLs: " + err.Error())
 	}
-
 	if len(recentURLs) == 0 {
-		t.Errorf("No URLs found")
+		t.Errorf("GetRecentURLs returned no URLs")
 	}
-}
 
-func TestGetAllURLs(t *testing.T) {
+	// Online
+	onlineURLs, err := GetAllOnlineURLs()
+	if err != nil {
+		t.Errorf("Error fetching online URLs: " + err.Error())
+	}
+	if len(onlineURLs) == 0 {
+		t.Errorf("GetAllOnlineURLs returned no URLs")
+	}
+
+	// All
 	allURLs, err := GetAllURLs()
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("GetAllURLs returned error: " + err.Error())
 	}
-
 	if len(allURLs) == 0 {
-		t.Errorf("No URLs found")
+		t.Errorf("GetAllURLs returned no URLs")
 	}
 }
