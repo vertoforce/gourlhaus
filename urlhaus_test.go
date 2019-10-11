@@ -30,3 +30,24 @@ func TestGetURLs(t *testing.T) {
 		t.Errorf("GetAllURLs returned no URLs")
 	}
 }
+
+func TestPopulateURLEntriesWithHashes(t *testing.T) {
+	entries, err := GetRecentURLs()
+	if err != nil {
+		return
+	}
+
+	err = PopulateURLEntriesWithHashes(entries)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Check to make sure at least one item has a MD5, SHA256, or filetype
+	for _, entry := range entries {
+		if entry.MD5 != "" || entry.Filetype != "" || entry.SHA256 != "" {
+			return
+		}
+	}
+
+	t.Error("No entries got enriched with a hash")
+}
