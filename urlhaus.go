@@ -10,8 +10,9 @@ import (
 
 // Internal constants
 const (
-	urlHausRecentURLsLink = "https://urlhaus.abuse.ch/downloads/csv_recent/"
-	urlHausAllURLsLink    = "https://urlhaus.abuse.ch/downloads/csv/"
+	urlHausRecentURLsLink    = "https://urlhaus.abuse.ch/downloads/csv_recent/"
+	urlHausAllURLsLink       = "https://urlhaus.abuse.ch/downloads/csv/"
+	urlHausAllOnlineURLsLink = "https://urlhaus.abuse.ch/downloads/csv_online/"
 )
 
 // URLStatus State of URL
@@ -44,6 +45,11 @@ func GetRecentURLs() ([]URLEntry, error) {
 // GetAllURLs Get all urlhaus urls
 func GetAllURLs() ([]URLEntry, error) {
 	return linkToURLEntries(urlHausAllURLsLink)
+}
+
+// GetAllOnlineURLs Get all urlhaus urls
+func GetAllOnlineURLs() ([]URLEntry, error) {
+	return linkToURLEntries(urlHausAllOnlineURLsLink)
 }
 
 func linkToURLEntries(url string) ([]URLEntry, error) {
