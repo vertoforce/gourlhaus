@@ -1,4 +1,4 @@
-package urlhaus
+package gourlhaus
 
 import "testing"
 
