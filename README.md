@@ -25,7 +25,7 @@ type URLDetails struct {
     URLHausLink string
     Reporter    string
 
-    // Default to nothing, but filled in when calling GetURLPayloadHashes
+    // Default to nothing, but filled in when calling PopulateURLEntriesWithHashes
     Filetype string
     MD5      string
     SHA256   string
