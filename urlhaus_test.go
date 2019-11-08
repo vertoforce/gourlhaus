@@ -1,49 +1,63 @@
 package gourlhaus
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestGetURLs(t *testing.T) {
+	ctx := context.Background()
+
 	// Recent
-	recentURLs, err := GetRecentURLs()
+	recentURLs, err := GetRecentURLs(ctx)
 	if err != nil {
 		t.Errorf("Error fetching recent URLs: " + err.Error())
 	}
-	if len(recentURLs) == 0 {
-		t.Errorf("GetRecentURLs returned no URLs")
+	good := false
+	for range recentURLs {
+		good = true
+	}
+	if !good {
+		t.Errorf("No Recent URL returned")
 	}
 
 	// Online
-	onlineURLs, err := GetAllOnlineURLs()
+	onlineURLs, err := GetAllOnlineURLs(ctx)
 	if err != nil {
 		t.Errorf("Error fetching online URLs: " + err.Error())
 	}
-	if len(onlineURLs) == 0 {
-		t.Errorf("GetAllOnlineURLs returned no URLs")
+	good = false
+	for range onlineURLs {
+		good = true
+	}
+	if !good {
+		t.Errorf("No Recent URL returned")
 	}
 
 	// All
-	allURLs, err := GetAllURLs()
+	allURLs, err := GetAllURLs(ctx)
 	if err != nil {
 		t.Errorf("GetAllURLs returned error: " + err.Error())
 	}
-	if len(allURLs) == 0 {
-		t.Errorf("GetAllURLs returned no URLs")
+	good = false
+	for range allURLs {
+		good = true
+	}
+	if !good {
+		t.Errorf("No Recent URL returned")
 	}
 }
 
-func TestPopulateURLEntriesWithHashes(t *testing.T) {
-	entries, err := GetRecentURLs()
-	if err != nil {
-		return
-	}
+func TestGetURLsWithHashes(t *testing.T) {
+	ctx := context.Background()
 
-	err = PopulateURLEntriesWithHashes(entries)
+	entries, err := GetURLsWithHashes(ctx)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Check to make sure at least one item has a MD5, SHA256, or filetype
-	for _, entry := range entries {
+	for entry := range entries {
 		if entry.MD5 != "" || entry.Filetype != "" || entry.SHA256 != "" {
 			return
 		}
