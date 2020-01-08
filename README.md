@@ -1,5 +1,8 @@
 # URLHaus Go Wrapper
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/vertoforce/gourlhaus)](https://goreportcard.com/report/github.com/vertoforce/gourlhaus)
+[![Documentation](https://godoc.org/github.com/vertoforce/gourlhaus?status.svg)](https://godoc.org/github.com/vertoforce/gourlhaus)
+
 Simple library to fetch URLHaus URLs in go
 
 ## Usage
