@@ -15,26 +15,6 @@ urlhaus.GetAllURLs()
 urlhaus.GetAllOnlineURLs()
 ```
 
-Each returns `URLEntries` which is a map of the url to details about it `map[string]URLDetails`
-
-```go
-type URLDetails struct {
-    ID          string
-    DateAdded   string
-    URL         string
-    URLStatus   URLStatus
-    Threat      string
-    Tags        []string
-    URLHausLink string
-    Reporter    string
-
-    // Default to nothing, but filled in when calling PopulateURLEntriesWithHashes
-    Filetype string
-    MD5      string
-    SHA256   string
-}
-```
-
 ### Getting hashes of the content hosted at those URLs
 
-Calling `PopulateURLEntriesWithHashes(entries URLEntries)` populates the `URLEntries` with hashes of the content hosted there if it's found in URLHaus (separate endpoint).
+URLHaus also provides the hashes that were found on the urls.  However it's a separate endpoint, so to populate the URLEntries with the hash data, call `FillInURLHashDetails()` on the URLEntry list.

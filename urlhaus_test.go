@@ -13,12 +13,8 @@ func TestGetURLs(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error fetching recent URLs: " + err.Error())
 	}
-	good := false
-	for range recentURLs {
-		good = true
-	}
-	if !good {
-		t.Errorf("No Recent URL returned")
+	if len(recentURLs) < 1000 {
+		t.Errorf("Did not get enough urls")
 	}
 
 	// Online
@@ -26,12 +22,8 @@ func TestGetURLs(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error fetching online URLs: " + err.Error())
 	}
-	good = false
-	for range onlineURLs {
-		good = true
-	}
-	if !good {
-		t.Errorf("No Recent URL returned")
+	if len(onlineURLs) < 1000 {
+		t.Errorf("Did not get enough urls")
 	}
 
 	// All
@@ -39,29 +31,7 @@ func TestGetURLs(t *testing.T) {
 	if err != nil {
 		t.Errorf("GetAllURLs returned error: " + err.Error())
 	}
-	good = false
-	for range allURLs {
-		good = true
+	if len(allURLs) < 1000 {
+		t.Errorf("Did not get enough urls")
 	}
-	if !good {
-		t.Errorf("No Recent URL returned")
-	}
-}
-
-func TestGetURLsWithHashes(t *testing.T) {
-	ctx := context.Background()
-
-	entries, err := GetURLsWithHashes(ctx)
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Check to make sure at least one item has a MD5, SHA256, or filetype
-	for entry := range entries {
-		if entry.MD5 != "" || entry.Filetype != "" || entry.SHA256 != "" {
-			return
-		}
-	}
-
-	t.Error("No entries got enriched with a hash")
 }
