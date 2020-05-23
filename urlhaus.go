@@ -62,7 +62,7 @@ func GetAllURLs(ctx context.Context) ([]URLEntry, error) {
 // GetAllOnlineURLs Get all urlhaus urls
 func GetAllOnlineURLs(ctx context.Context) ([]URLEntry, error) {
 	ret := []URLEntry{}
-	err := downloadCSV(ctx, urlHausAllOnlineURLsLink, true, &ret)
+	err := downloadCSV(ctx, urlHausAllOnlineURLsLink, false, &ret)
 	if err != nil {
 		return nil, err
 	}
