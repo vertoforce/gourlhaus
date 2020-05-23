@@ -27,7 +27,7 @@ type URLEntry struct {
 	Reporter    string `csv:"reporter"`
 
 	// Hash details populated after calling FillInURLHashDetails
-	urlHashes []URLHashDetails `csv:"-"`
+	URLHashes []URLHashDetails `csv:"-"`
 }
 
 // URLHashDetails about the hash hosted at this url
@@ -91,7 +91,7 @@ func FillInURLHashDetails(ctx context.Context, urlEntries []URLEntry) error {
 		if i, ok := urlEntriesMap[payload.URL]; ok {
 			// Remove url from payload to save space
 			payload.URL = ""
-			urlEntries[i].urlHashes = append(urlEntries[i].urlHashes, payload)
+			urlEntries[i].URLHashes = append(urlEntries[i].URLHashes, payload)
 		}
 	}
 
