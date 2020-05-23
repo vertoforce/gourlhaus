@@ -52,7 +52,7 @@ func TestFillInHashes(t *testing.T) {
 	// Check for a few hashes to be present
 	hashesCounted := 0
 	for _, entry := range entries {
-		if len(entry.urlHashes) > 0 {
+		if len(entry.URLHashes) > 0 {
 			hashesCounted++
 		}
 		if hashesCounted >= 15 {
