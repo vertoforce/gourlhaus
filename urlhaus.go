@@ -132,15 +132,14 @@ func CheckForUnseenURLs(ctx context.Context, urls []string) ([]string, error) {
 		return nil, err
 	}
 	unseenURLs := []string{}
+outerLoop:
 	for _, url := range urls {
 		seen := false
 		for _, entry := range entries {
 			if url == entry.URL {
-				seen = true
+				unseenURLs = append(unseenURLs, url)
+				continue outerLoop
 			}
-		}
-		if !seen {
-			unseenURLs = append(unseenURLs, url)
 		}
 	}
 
