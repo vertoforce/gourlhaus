@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
+	"io"
+
+	"golang.org/x/net/context/ctxhttp"
 )
 
 // Internal constants
@@ -89,7 +90,7 @@ func GetAllOnlineURLs(ctx context.Context) ([]URLEntry, error) {
 }
 
 // SubmitURLs takes a list of URLs and attempsts to submit them. The list returned wil contain the URLs that were successfully submitted
-func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string, threat string) (string, error) {
+func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string, threat string) (io.Reader, error) {
 	submission := &Submission{}
 	submission.Token = apiKey
 	submission.Anonymous = "0"
@@ -108,21 +109,16 @@ func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string
 	}
 	jsonEntries, err := json.Marshal(submission)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	httpBody := bytes.NewBuffer(jsonEntries)
-	resp, err := http.Post(urlHausURLSubmit, "application/json", httpBody)
+	resp, err := ctxhttp.Post(ctx, nil, urlHausURLSubmit, "application/json", httpBody)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	httpRespBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(httpRespBody), nil
+	return resp.Body, nil
 }
 
 //CheckForUnseenURLs takes a list of URLs and returns the ones that havent been submitted to the platform
