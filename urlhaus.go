@@ -1,7 +1,12 @@
 package gourlhaus
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
+
+	"golang.org/x/net/context/ctxhttp"
 )
 
 // Internal constants
@@ -10,10 +15,24 @@ const (
 	urlHausAllURLsLink       = "https://urlhaus.abuse.ch/downloads/csv/"
 	urlHausAllOnlineURLsLink = "https://urlhaus.abuse.ch/downloads/csv_online/"
 	urlHausPayloadsURL       = "https://urlhaus.abuse.ch/downloads/payloads/"
+	urlHausURLSubmit         = "https://urlhaus.abuse.ch/api/"
 )
 
 // URLStatus State of URL
 type URLStatus int
+
+// Submission struct of the JSON required to submit a URL
+type Submission struct {
+	Token      string          `json:"token"`
+	Anonymous  string          `json:"anonymous"`
+	Submission []submissionURL `json:"submission"`
+}
+
+type submissionURL struct {
+	URL    string   `json:"url"`
+	Threat string   `json:"threat"`
+	Tags   []string `json:"tags,omitempty"`
+}
 
 // URLEntry Entry of URL in URLHaus
 type URLEntry struct {
@@ -68,6 +87,58 @@ func GetAllOnlineURLs(ctx context.Context) ([]URLEntry, error) {
 		return nil, err
 	}
 	return ret, nil
+}
+
+// SubmitURLs takes a list of URLs and attempsts to submit them. The list returned wil contain the URLs that were successfully submitted
+func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string, threat string) (io.ReadCloser, error) {
+	submission := &Submission{}
+	submission.Token = apiKey
+	submission.Anonymous = "0"
+	submission.Submission = []submissionURL{}
+
+	for _, url := range urls {
+		if url == "" {
+			continue
+		}
+
+		urlEntry := &submissionURL{}
+		urlEntry.URL = url
+		urlEntry.Tags = tags
+		urlEntry.Threat = threat
+		submission.Submission = append(submission.Submission, *urlEntry)
+	}
+	jsonEntries, err := json.Marshal(submission)
+	if err != nil {
+		return nil, err
+	}
+
+	httpBody := bytes.NewBuffer(jsonEntries)
+	resp, err := ctxhttp.Post(ctx, nil, urlHausURLSubmit, "application/json", httpBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Body, nil
+}
+
+//CheckForUnseenURLs takes a list of URLs and returns the ones that havent been submitted to the platform
+func CheckForUnseenURLs(ctx context.Context, urls []string) ([]string, error) {
+	entries, err := GetAllURLs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	unseenURLs := []string{}
+outerLoop:
+	for _, url := range urls {
+		for _, entry := range entries {
+			if url == entry.URL {
+				unseenURLs = append(unseenURLs, url)
+				continue outerLoop
+			}
+		}
+	}
+
+	return unseenURLs, nil
 }
 
 // FillInURLHashDetails Downloads the payload data from URL haus and adds in the hashes to the provided urlEntries slice
