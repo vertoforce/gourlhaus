@@ -90,7 +90,7 @@ func GetAllOnlineURLs(ctx context.Context) ([]URLEntry, error) {
 }
 
 // SubmitURLs takes a list of URLs and attempsts to submit them. The list returned wil contain the URLs that were successfully submitted
-func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string, threat string) (io.Reader, error) {
+func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string, threat string) (io.ReadCloser, error) {
 	submission := &Submission{}
 	submission.Token = apiKey
 	submission.Anonymous = "0"
