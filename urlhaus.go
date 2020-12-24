@@ -133,6 +133,7 @@ func CheckForUnseenURLs(ctx context.Context, urls []string) ([]string, error) {
 		for _, entry := range entries {
 			if url == entry.URL {
 				seen = true
+				break
 			}
 		}
 		if !seen {
