@@ -11,7 +11,7 @@ func TestGetURLs(t *testing.T) {
 	// Recent
 	recentURLs, err := GetRecentURLs(ctx)
 	if err != nil {
-		t.Errorf("Error fetching recent URLs: " + err.Error())
+		t.Errorf("Error fetching recent URLs: %v", err)
 	}
 	if len(recentURLs) < 1000 {
 		t.Errorf("Did not get enough urls")
@@ -20,7 +20,7 @@ func TestGetURLs(t *testing.T) {
 	// Online
 	onlineURLs, err := GetAllOnlineURLs(ctx)
 	if err != nil {
-		t.Errorf("Error fetching online URLs: " + err.Error())
+		t.Errorf("Error fetching online URLs: %v", err)
 	}
 	if len(onlineURLs) < 1000 {
 		t.Errorf("Did not get enough urls")
@@ -29,7 +29,7 @@ func TestGetURLs(t *testing.T) {
 	// All
 	allURLs, err := GetAllURLs(ctx)
 	if err != nil {
-		t.Errorf("GetAllURLs returned error: " + err.Error())
+		t.Errorf("GetAllURLs returned error: %v", err)
 	}
 	if len(allURLs) < 1000 {
 		t.Errorf("Did not get enough urls")
