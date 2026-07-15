@@ -5,9 +5,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/gocarina/gocsv"
@@ -30,7 +31,7 @@ func downloadCSV(ctx context.Context, url string, zipFile bool, out interface{})
 	}
 
 	// Download all data
-	allData, err := ioutil.ReadAll(resp.Body)
+	allData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
@@ -52,6 +53,41 @@ func downloadCSV(ctx context.Context, url string, zipFile bool, out interface{})
 	return fmt.Errorf("no files in zip file")
 }
 
+// skippingCSVReader wraps a csv.Reader and silently skips records that fail
+// to parse (URLHaus dumps contain a few malformed rows, e.g. stray quotes in URLs).
+type skippingCSVReader struct {
+	r *csv.Reader
+}
+
+func (s *skippingCSVReader) Read() ([]string, error) {
+	for {
+		record, err := s.r.Read()
+		if err == nil {
+			return record, nil
+		}
+		var parseErr *csv.ParseError
+		if errors.As(err, &parseErr) {
+			// Skip malformed record and keep reading
+			continue
+		}
+		return record, err
+	}
+}
+
+func (s *skippingCSVReader) ReadAll() ([][]string, error) {
+	var records [][]string
+	for {
+		record, err := s.Read()
+		if errors.Is(err, io.EOF) {
+			return records, nil
+		}
+		if err != nil {
+			return records, err
+		}
+		records = append(records, record)
+	}
+}
+
 // readCSV Reads a csv into a provided slice
 func readCSV(ctx context.Context, reader io.Reader, out interface{}) error {
 	// URLHaus Specific:
@@ -64,7 +100,7 @@ func readCSV(ctx context.Context, reader io.Reader, out interface{}) error {
 	bufReader.ReadByte()
 	bufReader.ReadByte()
 
-	if err := gocsv.Unmarshal(bufReader, out); err != nil {
+	if err := gocsv.UnmarshalCSV(&skippingCSVReader{r: csv.NewReader(bufReader)}, out); err != nil {
 		return err
 	}
 	return nil
