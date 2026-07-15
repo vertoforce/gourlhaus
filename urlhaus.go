@@ -5,8 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-
-	"golang.org/x/net/context/ctxhttp"
+	"net/http"
 )
 
 // Internal constants
@@ -23,7 +22,8 @@ type URLStatus int
 
 // Submission struct of the JSON required to submit a URL
 type Submission struct {
-	Token      string          `json:"token"`
+	// Deprecated: URLhaus now authenticates via the Auth-Key HTTP header; this field is no longer sent.
+	Token      string          `json:"token,omitempty"`
 	Anonymous  string          `json:"anonymous"`
 	Submission []submissionURL `json:"submission"`
 }
@@ -89,10 +89,10 @@ func GetAllOnlineURLs(ctx context.Context) ([]URLEntry, error) {
 	return ret, nil
 }
 
-// SubmitURLs takes a list of URLs and attempsts to submit them. The list returned wil contain the URLs that were successfully submitted
+// SubmitURLs takes a list of URLs and attempts to submit them, returning the response body.
+// apiKey is your abuse.ch Auth-Key (free from https://auth.abuse.ch/); it is sent as the Auth-Key HTTP header.
 func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string, threat string) (io.ReadCloser, error) {
 	submission := &Submission{}
-	submission.Token = apiKey
 	submission.Anonymous = "0"
 	submission.Submission = []submissionURL{}
 
@@ -113,7 +113,16 @@ func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string
 	}
 
 	httpBody := bytes.NewBuffer(jsonEntries)
-	resp, err := ctxhttp.Post(ctx, nil, urlHausURLSubmit, "application/json", httpBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, urlHausURLSubmit, httpBody)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if apiKey != "" {
+		req.Header.Set("Auth-Key", apiKey)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +130,7 @@ func SubmitURLs(ctx context.Context, urls []string, apiKey string, tags []string
 	return resp.Body, nil
 }
 
-//CheckForUnseenURLs takes a list of URLs and returns the ones that havent been submitted to the platform
+// CheckForUnseenURLs takes a list of URLs and returns the ones that havent been submitted to the platform
 func CheckForUnseenURLs(ctx context.Context, urls []string) ([]string, error) {
 	entries, err := GetAllURLs(ctx)
 	if err != nil {
